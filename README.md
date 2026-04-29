@@ -600,5 +600,8 @@ PHP_Laravel12_Responder
 ------------------------------------------------------------------------
 
 Your PHP_Laravel12_Responder Project is now ready!
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> development
