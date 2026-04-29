@@ -9,39 +9,42 @@ use App\Transformers\PostTransformer;
 
 class PostController extends Controller
 {
-    /**
-     * Get All Posts
-     */
-    public function getPosts()
+    // =========================
+    // GET POSTS (SEARCH + PAGINATION)
+    // =========================
+    public function index(Request $request)
     {
-        $posts = Post::all();
+        $query = Post::query();
+
+        if ($request->search) {
+            $query->where('title', 'like', "%{$request->search}%")
+                  ->orWhere('description', 'like', "%{$request->search}%");
+        }
+
+        $posts = $query->orderBy('id', 'desc')->paginate(5);
 
         return responder()
             ->success($posts, PostTransformer::class)
             ->respond();
     }
 
-    /**
-     * Create Post
-     */
-    public function createPost(Request $request)
+    // CREATE POST
+    public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+        $data = $request->validate([
+            'title' => 'required',
+            'description' => 'required'
         ]);
 
-        $post = Post::create($validated);
+        $post = Post::create($data);
 
         return responder()
             ->success($post, PostTransformer::class)
             ->respond();
     }
 
-    /**
-     * Show Single Post
-     */
-    public function showPost($id)
+    // SHOW SINGLE
+    public function show($id)
     {
         $post = Post::findOrFail($id);
 
@@ -50,36 +53,55 @@ class PostController extends Controller
             ->respond();
     }
 
-    /**
-     * Update Post
-     */
-    public function updatePost(Request $request, $id)
+    // UPDATE
+    public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
 
-        $validated = $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-        ]);
-
-        $post->update($validated);
+        $post->update($request->only(['title', 'description']));
 
         return responder()
             ->success($post, PostTransformer::class)
             ->respond();
     }
 
-    /**
-     * Delete Post
-     */
-    public function deletePost($id)
+    // SOFT DELETE (TRASH)
+    public function destroy($id)
     {
-        $post = Post::findOrFail($id);
-
-        $post->delete();
+        Post::findOrFail($id)->delete();
 
         return responder()
-            ->success(['message' => 'Post deleted successfully'])
+            ->success(['message' => 'Moved to trash'])
+            ->respond();
+    }
+
+    // TRASH LIST
+    public function trash()
+    {
+        $posts = Post::onlyTrashed()->paginate(5);
+
+        return responder()
+            ->success($posts, PostTransformer::class)
+            ->respond();
+    }
+
+    // RESTORE
+    public function restore($id)
+    {
+        Post::onlyTrashed()->findOrFail($id)->restore();
+
+        return responder()
+            ->success(['message' => 'Restored successfully'])
+            ->respond();
+    }
+
+    // FORCE DELETE
+    public function forceDelete($id)
+    {
+        Post::onlyTrashed()->findOrFail($id)->forceDelete();
+
+        return responder()
+            ->success(['message' => 'Permanently deleted'])
             ->respond();
     }
 }
