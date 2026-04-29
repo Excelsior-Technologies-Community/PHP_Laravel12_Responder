@@ -5,25 +5,34 @@ use App\Http\Controllers\Api\PostController;
 
 /*
 |--------------------------------------------------------------------------
-| Post API Routes (GET & POST Only)
+| POSTS API ROUTES
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('posts')->group(function () {
 
-    // Get all posts
-    Route::get('/', [PostController::class, 'getPosts']);
+    // GET ALL (SEARCH + PAGINATION)
+    Route::get('/', [PostController::class, 'index']);
 
-    // Create post
-    Route::post('/create', [PostController::class, 'createPost']);
+    // CREATE
+    Route::post('/', [PostController::class, 'store']);
 
-    // Show single post by ID
-    Route::get('/show/{id}', [PostController::class, 'showPost']);
+    // SINGLE POST
+    Route::get('/{id}', [PostController::class, 'show']);
 
-    // Update post by ID (POST method)
-    Route::post('/update/{id}', [PostController::class, 'updatePost']);
+    // UPDATE (✔ correct REST method)
+    Route::put('/{id}', [PostController::class, 'update']);
 
-    // Delete post by ID (POST method)
-    Route::post('/delete/{id}', [PostController::class, 'deletePost']);
+    // DELETE (SOFT DELETE)
+    Route::delete('/{id}', [PostController::class, 'destroy']);
+
+    // TRASH LIST
+    Route::get('/trash/list', [PostController::class, 'trash']);
+
+    // RESTORE
+    Route::post('/restore/{id}', [PostController::class, 'restore']);
+
+    // FORCE DELETE
+    Route::delete('/force/{id}', [PostController::class, 'forceDelete']);
 
 });
